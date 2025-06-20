@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> 你的小秘密 </title>
+    <title> 舒心 </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     
@@ -51,6 +51,15 @@
                 transform: translateY(-5px);
                 box-shadow: 0 10px 20px rgba(255, 75, 145, 0.2);
             }
+            .minimize-transition {
+                transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+            .fade-in {
+                animation: fadeIn 1s ease-in-out;
+            }
+            .slide-up {
+                animation: slideUp 0.8s ease-out;
+            }
         }
         
         /* 桃花飘落动画 */
@@ -74,6 +83,16 @@
             }
         }
         
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
         /* 滚动条美化 */
         ::-webkit-scrollbar {
             width: 8px;
@@ -91,17 +110,27 @@
         }
     </style>
 </head>
-<body class="bg-dark text-light min-h-screen flex flex-col overflow-x-hidden">
+<body class="bg-dark text-light min-h-screen flex flex-col overflow-x-hidden opacity-0 transition-opacity duration-1000" id="main-body">
+    <!-- 进入动画遮罩 -->
+    <div id="entry-animation" class="fixed inset-0 z-50 flex items-center justify-center bg-dark">
+        <div class="text-center">
+            <div class="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary mb-4">桃之夭夭</div>
+            <div class="w-32 h-2 bg-gradient-to-r from-primary to-secondary rounded-full overflow-hidden">
+                <div class="h-full w-0 bg-white animate-pulse" id="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- 导航栏 -->
-    <nav class="glass-effect py-4 px-6 flex justify-between items-center sticky top-0 z-50">
+    <nav class="glass-effect py-4 px-6 flex justify-between items-center sticky top-0 z-40 opacity-0 transition-opacity duration-700" id="navbar">
         <div class="flex items-center space-x-2">
             <i class="fa fa-play-circle text-primary text-2xl"></i>
-            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">桃之夭夭</h1>
+            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">精彩继续</h1>
         </div>
         <div class="hidden md:flex items-center space-x-6">
             <a href="#" class="hover:text-primary transition-colors">首页</a>
             <a href="#" class="hover:text-primary transition-colors">热门推荐</a>
-            <a href="#" class="hover:text-primary transition-colors">本地视频</a>
+            <a href="#" class="hover:text-primary transition-colors">老马的小秘密</a>
             <a href="#" class="hover:text-primary transition-colors">舞蹈分类</a>
         </div>
         <button class="md:hidden text-2xl">
@@ -110,121 +139,114 @@
     </nav>
 
     <!-- 主要内容区 -->
-    <main class="flex-grow flex flex-col px-4 py-8">
+    <main class="flex-grow flex flex-col px-4 py-8 opacity-0 transition-opacity duration-700" id="main-content">
         <!-- 标题区域 -->
-        <div class="text-center mb-8 animate-float">
+        <div class="text-center mb-8 animate-float slide-up">
             <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-2 text-shadow">精选视频合集</h2>
-            <p class="text-gray-400">舞蹈表演</p>
+            <p class="text-gray-400">收全网精彩舞蹈表演</p>
         </div>
         
         <!-- 视频播放区域 -->
         <div class="w-full max-w-5xl self-center">
             <!-- 视频标签页切换 -->
-            <div class="flex mb-4 overflow-x-auto pb-2">
+            <div class="flex mb-4 overflow-x-auto pb-2 slide-up" style="animation-delay: 0.2s;">
                 <button class="tab-btn active px-4 py-2 rounded-full bg-primary text-white mr-2" data-tab="bilibili">哔哩哔哩视频</button>
-                <button class="tab-btn px-4 py-2 rounded-full bg-dark/50 text-white mr-2" data-tab="local">内置视频</button>
+                <button class="tab-btn px-4 py-2 rounded-full bg-dark/50 text-white mr-2" data-tab="local">秘密</button>
             </div>
             
-            <!-- 哔哩哔哩视频播放 -->
-            <div class="tab-content active" id="bilibili-tab">
-                <div class="bg-gradient-to-br from-secondary/20 to-primary/20 rounded-2xl p-1 shadow-2xl animate-float">
-                    <div class="relative rounded-xl overflow-hidden aspect-video">
-                        <iframe id="biliIframe" 
-                                src="//player.bilibili.com/player.html?bvid=BV1Js421G7wN&t=0.3&autoplay=0&muted=1&high_quality=2" 
-                                frameborder="0" 
-                                allowfullscreen
-                                class="w-full h-full">
-                        </iframe>
-                        
-                        <!-- 移动端播放提示 -->
-                        <div id="mobilePlayTip" class="absolute inset-0 flex items-center justify-center bg-dark/50 cursor-pointer md:hidden">
-                            <div class="text-center p-6">
-                                <i class="fa fa-play-circle text-primary text-5xl mb-3"></i>
-                                <p class="text-lg">点击播放视频</p>
+            <!-- 视频容器 -->
+            <div class="relative" id="video-container">
+                <!-- 精彩视频播放 -->
+                <div class="tab-content active" id="bilibili-tab">
+                    <div class="bg-gradient-to-br from-secondary/20 to-primary/20 rounded-2xl p-1 shadow-2xl animate-float slide-up" style="animation-delay: 0.4s;">
+                        <div class="relative rounded-xl overflow-hidden aspect-video">
+                            <iframe id="biliIframe" 
+                                    src="//player.bilibili.com/player.html?bvid=BV1Js421G7wN&t=0.3&autoplay=0&muted=1&high_quality=2" 
+                                    frameborder="0" 
+                                    allowfullscreen
+                                    class="w-full h-full">
+                            </iframe>
+                            
+                            <!-- 移动端播放提示 -->
+                            <div id="mobilePlayTip" class="absolute inset-0 flex items-center justify-center bg-dark/50 cursor-pointer md:hidden">
+                                <div class="text-center p-6">
+                                    <i class="fa fa-play-circle text-primary text-5xl mb-3"></i>
+                                    <p class="text-lg">点击播放视频</p>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 视频信息 -->
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold mb-2">硬控你一分半？提线木偶！【100万粉作】</h3>
-                        <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
-                            <span>播放量：152.9万</span>
-                            <span>发布时间：2024-05-27</span>
+                            
+                            <!-- 小窗播放按钮 -->
+                            <button id="minimizeBtn" class="absolute top-4 right-4 bg-dark/70 hover:bg-dark/90 text-white p-2 rounded-full transition-colors z-20">
+                                <i class="fa fa-compress"></i>
+                            </button>
                         </div>
                         
-                        <!-- 控制栏 -->
-                        <div class="glass-effect rounded-lg p-4 mt-4">
-                            <div class="flex flex-col space-y-4">
-                                <!-- 播放控制 -->
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center space-x-6">
-                                        <button id="playPauseBtn" class="text-2xl text-primary hover:text-primary/80 transition-colors">
-                                            <i class="fa fa-play"></i>
-                                        </button>
-                                        <button class="text-xl hover:text-primary transition-colors">
-                                            <i class="fa fa-step-backward"></i>
-                                        </button>
-                                        <button class="text-xl hover:text-primary transition-colors">
-                                            <i class="fa fa-step-forward"></i>
-                                        </button>
-                                    </div>
-                                    
-                                    <div class="flex items-center space-x-4">
-                                        <button class="hover:text-primary transition-colors">
-                                            <i class="fa fa-volume-up"></i>
-                                        </button>
-                                        <button class="hover:text-primary transition-colors">
-                                            <i class="fa fa-cog"></i>
-                                        </button>
-                                        <button class="hover:text-primary transition-colors">
-                                            <i class="fa fa-expand"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- 进度条 -->
-                                <div class="relative">
-                                    <input type="range" id="progressSlider" class="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer">
-                                    <div class="absolute -top-6 left-0 text-xs text-primary" id="timeDisplay">00:00 / 01:32</div>
-                                </div>
+                        <!-- 视频信息 -->
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold mb-2">硬控你一分半？提线木偶！【100万粉作】</h3>
+                            <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
+                                <span>播放量：152.9万</span>
+                                <span>发布时间：2024-05-27</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- 内置视频播放 -->
-            <div class="tab-content hidden" id="local-tab">
-                <div class="bg-gradient-to-br from-secondary/20 to-primary/20 rounded-2xl p-1 shadow-2xl animate-float">
-                    <div class="relative rounded-xl overflow-hidden aspect-video">
-                        <!-- 内置视频播放器（默认播放第一个视频） -->
-                        <video id="localVideo" class="w-full h-full" controls poster="https://picsum.photos/seed/localvideo1/1280/720">
-                            <source src="videos\m1.mp4" type="video/mp4">
-                            您的浏览器不支持HTML5视频播放。
-                        </video>
+                
+                <!-- 本地视频播放 -->
+                <div class="tab-content hidden" id="local-tab">
+                    <div class="bg-gradient-to-br from-secondary/20 to-primary/20 rounded-2xl p-1 shadow-2xl animate-float slide-up" style="animation-delay: 0.4s;">
+                        <div class="relative rounded-xl overflow-hidden aspect-video">
+                            <!-- 本地视频播放器 -->
+                            <video id="localVideo" class="w-full h-full" controls poster="https://picsum.photos/seed/localvideo/1280/720">
+                                <source src="videos/m1.mp4" type="video/mp4">
+                                <source src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4" type="video/mp4">
+                                您的浏览器不支持HTML5视频播放。
+                            </video>
+                            
+                            <!-- 小窗播放按钮 -->
+                            <button id="minimizeBtnLocal" class="absolute top-4 right-4 bg-dark/70 hover:bg-dark/90 text-white p-2 rounded-full transition-colors z-20">
+                                <i class="fa fa-compress"></i>
+                            </button>
+                            
+                            <!-- 视频加载失败提示 -->
+                            <div id="videoError" class="absolute inset-0 flex flex-col items-center justify-center bg-dark/70 hidden">
+                                <i class="fa fa-exclamation-triangle text-red-500 text-5xl mb-3"></i>
+                                <p class="text-xl mb-2">视频加载失败</p>
+                                <p class="text-center max-w-md px-4">请检查视频路径是否正确，或尝试刷新页面。</p>
+                                <button id="refreshBtn" class="mt-4 px-6 py-2 bg-primary hover:bg-primary/80 rounded-full transition-colors">
+                                    刷新页面
+                                </button>
+                            </div>
+                        </div>
                         
-                        <!-- 视频选择器 -->
-                        <div class="absolute bottom-4 left-4 right-4 bg-dark/70 rounded-lg p-2 z-10">
-                            <select id="videoSelector" class="w-full bg-dark/50 text-white border border-gray-600 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-primary">
-                                <option value="videos/m1.mp4">兔子</option>
-                                <option value="https://sample-videos.com/video123/mp4/720/great_wall_720p_1mb.mp4">示例视频2 - 长城</option>
-                                <option value="https://sample-videos.com/video123/mp4/720/bridge_720p_1mb.mp4">示例视频3 - 桥梁</option>
-                            </select>
+                        <!-- 视频信息 -->
+                        <div class="p-6">
+                            <h3 id="localVideoTitle" class="text-xl font-bold mb-2">提线木偶舞蹈 - 本地版</h3>
+                            <p id="localVideoInfo" class="text-gray-400">路径：videos/m1.mp4 | 舞蹈表演</p>
                         </div>
                     </div>
-                    
-                    <!-- 视频信息 -->
-                    <div class="p-6">
-                        <h3 id="localVideoTitle" class="text-xl font-bold mb-2">兔子</h3>
-                        <p id="localVideoInfo" class="text-gray-400">内置示例视频 | 时长: 00:00:10 | 720p</p>
+                </div>
+                
+                <!-- 小窗播放器 -->
+                <div id="miniPlayer" class="fixed bottom-6 right-6 w-64 h-36 bg-dark rounded-xl shadow-2xl z-50 minimize-transition transform scale-0 opacity-0 pointer-events-none">
+                    <div class="relative w-full h-full overflow-hidden rounded-xl">
+                        <div class="absolute inset-0 bg-gradient-to-br from-secondary/20 to-primary/20"></div>
+                        <iframe id="miniIframe" src="" frameborder="0" allowfullscreen class="w-full h-full"></iframe>
+                        <video id="miniVideo" class="w-full h-full" controls></video>
+                        
+                        <button id="restoreBtn" class="absolute top-2 right-2 bg-dark/70 hover:bg-dark/90 text-white p-1 rounded-full transition-colors z-20">
+                            <i class="fa fa-expand"></i>
+                        </button>
+                        <button id="closeMiniBtn" class="absolute top-2 left-2 bg-dark/70 hover:bg-dark/90 text-white p-1 rounded-full transition-colors z-20">
+                            <i class="fa fa-times"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- 视频分类版块 -->
-        <div class="w-full max-w-5xl self-center mt-12">
+        <div class="w-full max-w-5xl self-center mt-12 slide-up" style="animation-delay: 0.6s;">
             <h3 class="text-xl font-bold mb-4 flex items-center">
                 <i class="fa fa-th-list text-primary mr-2"></i>
                 推荐视频
@@ -242,66 +264,28 @@
             <!-- 视频网格 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- 视频卡片1 -->
-                <div class="bg-dark/50 rounded-xl overflow-hidden video-thumb-hover" data-type="local" data-src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4">
+                <div class="bg-dark/50 rounded-xl overflow-hidden video-thumb-hover" data-type="local" data-src="videos/m1.mp4">
                     <div class="relative aspect-video">
                         <img src="https://picsum.photos/seed/video1/600/400" alt="视频缩略图" class="w-full h-full object-cover">
-                        <div class="absolute bottom-2 right-2 bg-dark/70 text-xs px-2 py-1 rounded">00:10</div>
+                        <div class="absolute bottom-2 right-2 bg-dark/70 text-xs px-2 py-1 rounded">01:32</div>
                         <div class="absolute inset-0 bg-primary/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                             <i class="fa fa-play-circle text-white text-4xl"></i>
                         </div>
                     </div>
                     <div class="p-4">
-                        <h4 class="font-semibold mb-2 line-clamp-2">示例视频1 - 兔子</h4>
+                        <h4 class="font-semibold mb-2 line-clamp-2">兔子</h4>
                         <div class="flex items-center text-xs text-gray-400">
-                            <span>内置视频</span>
+                            <span>可爱</span>
                             <span class="mx-2">•</span>
-                            <span>720p</span>
+                            <span>2025-6</span>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 视频卡片2 -->
-                <div class="bg-dark/50 rounded-xl overflow-hidden video-thumb-hover" data-type="local" data-src="https://sample-videos.com/video123/mp4/720/great_wall_720p_1mb.mp4">
-                    <div class="relative aspect-video">
-                        <img src="https://picsum.photos/seed/video2/600/400" alt="视频缩略图" class="w-full h-full object-cover">
-                        <div class="absolute bottom-2 right-2 bg-dark/70 text-xs px-2 py-1 rounded">00:10</div>
-                        <div class="absolute inset-0 bg-primary/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <i class="fa fa-play-circle text-white text-4xl"></i>
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <h4 class="font-semibold mb-2 line-clamp-2">示例视频2 - 长城</h4>
-                        <div class="flex items-center text-xs text-gray-400">
-                            <span>内置视频</span>
-                            <span class="mx-2">•</span>
-                            <span>720p</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 视频卡片3 -->
-                <div class="bg-dark/50 rounded-xl overflow-hidden video-thumb-hover" data-type="local" data-src="https://sample-videos.com/video123/mp4/720/bridge_720p_1mb.mp4">
-                    <div class="relative aspect-video">
-                        <img src="https://picsum.photos/seed/video3/600/400" alt="视频缩略图" class="w-full h-full object-cover">
-                        <div class="absolute bottom-2 right-2 bg-dark/70 text-xs px-2 py-1 rounded">00:10</div>
-                        <div class="absolute inset-0 bg-primary/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <i class="fa fa-play-circle text-white text-4xl"></i>
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <h4 class="font-semibold mb-2 line-clamp-2">示例视频3 - 桥梁</h4>
-                        <div class="flex items-center text-xs text-gray-400">
-                            <span>内置视频</span>
-                            <span class="mx-2">•</span>
-                            <span>720p</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 视频卡片4 -->
                 <div class="bg-dark/50 rounded-xl overflow-hidden video-thumb-hover" data-type="bilibili" data-bvid="BV1HtMCzaEHd" data-time="1.6">
                     <div class="relative aspect-video">
-                        <img src="https://picsum.photos/seed/video4/600/400" alt="视频缩略图" class="w-full h-full object-cover">
+                        <img src="https://picsum.photos/seed/video2/600/400" alt="视频缩略图" class="w-full h-full object-cover">
                         <div class="absolute bottom-2 right-2 bg-dark/70 text-xs px-2 py-1 rounded">03:45</div>
                         <div class="absolute inset-0 bg-primary/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                             <i class="fa fa-play-circle text-white text-4xl"></i>
@@ -317,10 +301,10 @@
                     </div>
                 </div>
                 
-                <!-- 视频卡片5 -->
+                <!-- 视频卡片3 -->
                 <div class="bg-dark/50 rounded-xl overflow-hidden video-thumb-hover" data-type="bilibili" data-bvid="BV1eL4y1t7iP" data-time="0">
                     <div class="relative aspect-video">
-                        <img src="https://picsum.photos/seed/video5/600/400" alt="视频缩略图" class="w-full h-full object-cover">
+                        <img src="https://picsum.photos/seed/video3/600/400" alt="视频缩略图" class="w-full h-full object-cover">
                         <div class="absolute bottom-2 right-2 bg-dark/70 text-xs px-2 py-1 rounded">02:18</div>
                         <div class="absolute inset-0 bg-primary/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                             <i class="fa fa-play-circle text-white text-4xl"></i>
@@ -336,10 +320,10 @@
                     </div>
                 </div>
                 
-                <!-- 视频卡片6 -->
+                <!-- 视频卡片4 -->
                 <div class="bg-dark/50 rounded-xl overflow-hidden video-thumb-hover" data-type="bilibili" data-bvid="BV1x44y1i7zJ" data-time="0">
                     <div class="relative aspect-video">
-                        <img src="https://picsum.photos/seed/video6/600/400" alt="视频缩略图" class="w-full h-full object-cover">
+                        <img src="https://picsum.photos/seed/video4/600/400" alt="视频缩略图" class="w-full h-full object-cover">
                         <div class="absolute bottom-2 right-2 bg-dark/70 text-xs px-2 py-1 rounded">05:12</div>
                         <div class="absolute inset-0 bg-primary/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                             <i class="fa fa-play-circle text-white text-4xl"></i>
@@ -354,24 +338,62 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- 视频卡片5 -->
+                <div class="bg-dark/50 rounded-xl overflow-hidden video-thumb-hover" data-type="local" data-src="https://sample-videos.com/video123/mp4/720/great_wall_720p_1mb.mp4">
+                    <div class="relative aspect-video">
+                        <img src="https://picsum.photos/seed/video5/600/400" alt="视频缩略图" class="w-full h-full object-cover">
+                        <div class="absolute bottom-2 right-2 bg-dark/70 text-xs px-2 py-1 rounded">00:10</div>
+                        <div class="absolute inset-0 bg-primary/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <i class="fa fa-play-circle text-white text-4xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-semibold mb-2 line-clamp-2">示例视频 - 长城</h4>
+                        <div class="flex items-center text-xs text-gray-400">
+                            <span>内置示例</span>
+                            <span class="mx-2">•</span>
+                            <span>720p</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 视频卡片6 -->
+                <div class="bg-dark/50 rounded-xl overflow-hidden video-thumb-hover" data-type="local" data-src="https://sample-videos.com/video123/mp4/720/bridge_720p_1mb.mp4">
+                    <div class="relative aspect-video">
+                        <img src="https://picsum.photos/seed/video6/600/400" alt="视频缩略图" class="w-full h-full object-cover">
+                        <div class="absolute bottom-2 right-2 bg-dark/70 text-xs px-2 py-1 rounded">00:10</div>
+                        <div class="absolute inset-0 bg-primary/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <i class="fa fa-play-circle text-white text-4xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-semibold mb-2 line-clamp-2">示例视频 - 桥梁</h4>
+                        <div class="flex items-center text-xs text-gray-400">
+                            <span>内置示例</span>
+                            <span class="mx-2">•</span>
+                            <span>720p</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
     <!-- 页脚 -->
-    <footer class="glass-effect py-6 px-4 text-center text-sm text-gray-400">
-        <p>© 2025 你的密码 - 视频精选平台</p>
+    <footer class="glass-effect py-6 px-4 text-center text-sm text-gray-400 opacity-0 transition-opacity duration-700" id="footer">
+        <p>© 2025 -视频精选平台</p>
         <p class="mt-2">本网站部分内容来自网络示例视频，如有侵权请联系删除</p>
     </footer>
 
     <!-- 桃花元素容器 -->
-    <div id="cherryBlossoms" class="fixed inset-0 pointer-events-none z-40"></div>
+    <div id="cherryBlossoms" class="fixed inset-0 pointer-events-none z-30"></div>
 
     <script>
         // 桃花飘落效果
         function createCherryBlossoms() {
             const container = document.getElementById('cherryBlossoms');
-            const totalBlossoms = 20;
+            const totalBlossoms = 30;
             
             for (let i = 0; i < totalBlossoms; i++) {
                 const blossom = document.createElement('div');
@@ -384,7 +406,7 @@
                     top: ${-Math.random() * 100}px;
                     font-size: ${size}px;
                     opacity: ${Math.random() * 0.5 + 0.5};
-                    animation: falling ${Math.random() * 10 + 10}s linear infinite;
+                    animation: falling ${Math.random() * 15 + 10}s linear infinite;
                     animation-delay: ${Math.random() * 10}s;
                     transform: rotate(${Math.random() * 360}deg);
                 `;
@@ -393,11 +415,124 @@
             }
         }
         
-        // 标签页切换
-        document.addEventListener('DOMContentLoaded', function() {
-            createCherryBlossoms();
+        // 小窗播放功能
+        function initMiniPlayer() {
+            const miniPlayer = document.getElementById('miniPlayer');
+            const miniIframe = document.getElementById('miniIframe');
+            const miniVideo = document.getElementById('miniVideo');
+            const minimizeBtn = document.getElementById('minimizeBtn');
+            const minimizeBtnLocal = document.getElementById('minimizeBtnLocal');
+            const restoreBtn = document.getElementById('restoreBtn');
+            const closeMiniBtn = document.getElementById('closeMiniBtn');
+            const biliTab = document.getElementById('bilibili-tab');
+            const localTab = document.getElementById('local-tab');
+            const biliIframe = document.getElementById('biliIframe');
+            const localVideo = document.getElementById('localVideo');
             
-            // 标签页切换逻辑
+            // 哔哩哔哩视频小窗
+            minimizeBtn.addEventListener('click', () => {
+                const currentSrc = biliIframe.src;
+                miniIframe.src = currentSrc;
+                miniVideo.style.display = 'none';
+                miniIframe.style.display = 'block';
+                
+                // 隐藏主播放器
+                biliTab.style.display = 'none';
+                
+                // 显示小窗
+                miniPlayer.style.transform = 'scale(1)';
+                miniPlayer.style.opacity = '1';
+                miniPlayer.style.pointerEvents = 'auto';
+            });
+            
+            // 本地视频小窗
+            minimizeBtnLocal.addEventListener('click', () => {
+                const currentSrc = localVideo.src;
+                miniVideo.src = currentSrc;
+                miniVideo.currentTime = localVideo.currentTime;
+                miniVideo.paused ? miniVideo.pause() : miniVideo.play();
+                miniIframe.style.display = 'none';
+                miniVideo.style.display = 'block';
+                
+                // 隐藏主播放器
+                localTab.style.display = 'none';
+                
+                // 显示小窗
+                miniPlayer.style.transform = 'scale(1)';
+                miniPlayer.style.opacity = '1';
+                miniPlayer.style.pointerEvents = 'auto';
+            });
+            
+            // 恢复正常大小
+            restoreBtn.addEventListener('click', () => {
+                if (miniIframe.style.display === 'block') {
+                    biliIframe.src = miniIframe.src;
+                    biliTab.style.display = 'block';
+                } else {
+                    localVideo.src = miniVideo.src;
+                    localVideo.currentTime = miniVideo.currentTime;
+                    localVideo.paused ? localVideo.pause() : localVideo.play();
+                    localTab.style.display = 'block';
+                }
+                
+                // 隐藏小窗
+                miniPlayer.style.transform = 'scale(0)';
+                miniPlayer.style.opacity = '0';
+                miniPlayer.style.pointerEvents = 'none';
+            });
+            
+            // 关闭小窗
+            closeMiniBtn.addEventListener('click', () => {
+                if (miniIframe.style.display === 'block') {
+                    biliTab.style.display = 'block';
+                } else {
+                    localTab.style.display = 'block';
+                }
+                
+                // 暂停视频
+                if (!miniVideo.paused) miniVideo.pause();
+                
+                // 隐藏小窗
+                miniPlayer.style.transform = 'scale(0)';
+                miniPlayer.style.opacity = '0';
+                miniPlayer.style.pointerEvents = 'none';
+            });
+            
+            // 允许拖动小窗
+            let isDragging = false;
+            let offsetX, offsetY;
+            
+            miniPlayer.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                offsetX = e.clientX - miniPlayer.getBoundingClientRect().left;
+                offsetY = e.clientY - miniPlayer.getBoundingClientRect().top;
+                miniPlayer.style.transition = 'none';
+            });
+            
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const x = e.clientX - offsetX;
+                const y = e.clientY - offsetY;
+                
+                // 限制在可视区域内
+                const maxX = window.innerWidth - miniPlayer.offsetWidth;
+                const maxY = window.innerHeight - miniPlayer.offsetHeight;
+                
+                miniPlayer.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
+                miniPlayer.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
+            });
+            
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    miniPlayer.style.transition = 'all 0.2s ease';
+                }
+            });
+        }
+        
+        // 标签页切换
+        function initTabs() {
             const tabBtns = document.querySelectorAll('.tab-btn');
             const tabContents = document.querySelectorAll('.tab-content');
             
@@ -418,8 +553,10 @@
                     document.getElementById(`${tabId}-tab`).classList.add('active');
                 });
             });
-            
-            // 视频卡片点击切换视频
+        }
+        
+        // 视频卡片点击切换视频
+        function initVideoCards() {
             const videoCards = document.querySelectorAll('.video-thumb-hover');
             const biliIframe = document.getElementById('biliIframe');
             const localVideo = document.getElementById('localVideo');
@@ -444,7 +581,7 @@
                         const title = card.querySelector('h4').textContent;
                         document.querySelector('#bilibili-tab h3').textContent = title;
                     } else if (type === 'local') {
-                        // 切换到内置视频标签页
+                        // 切换到本地视频标签页
                         document.querySelector('.tab-btn[data-tab="local"]').click();
                         
                         const src = card.getAttribute('data-src');
@@ -453,36 +590,81 @@
                         // 更新视频源和信息
                         localVideo.src = src;
                         localVideoTitle.textContent = title;
-                        localVideoInfo.textContent = `内置示例视频 | 时长: 00:00:10 | 720p`;
+                        
+                        if (src.includes('sample-videos.com')) {
+                            localVideoInfo.textContent = `示例视频 | 时长: 00:00:10 | 720p`;
+                        } else {
+                            localVideoInfo.textContent = `精彩视频 | 舞蹈表演`;
+                        }
                         
                         // 播放视频
                         localVideo.load();
-                        localVideo.play();
-                        
-                        // 更新下拉选择器
-                        document.getElementById('videoSelector').value = src;
+                        localVideo.play().catch(e => {
+                            console.error('视频播放失败:', e);
+                            document.getElementById('videoError').style.display = 'flex';
+                        });
                     }
                 });
             });
+        }
+        
+        // 视频加载错误处理
+        function initVideoErrorHandling() {
+            const localVideo = document.getElementById('localVideo');
+            const videoError = document.getElementById('videoError');
+            const refreshBtn = document.getElementById('refreshBtn');
             
-            // 视频选择器逻辑
-            const videoSelector = document.getElementById('videoSelector');
-            videoSelector.addEventListener('change', function() {
-                const selectedSrc = this.value;
-                const selectedTitle = this.options[this.selectedIndex].text;
-                
-                // 更新视频源和信息
-                localVideo.src = selectedSrc;
-                localVideoTitle.textContent = selectedTitle;
-                localVideoInfo.textContent = `内置示例视频 | 时长: 00:00:10 | 720p`;
-                
-                // 播放视频
-                localVideo.load();
-                localVideo.play();
+            localVideo.addEventListener('error', () => {
+                console.error('视频加载错误:', localVideo.error);
+                videoError.style.display = 'flex';
             });
             
-            // 移动端播放
+            refreshBtn.addEventListener('click', () => {
+                window.location.reload();
+            });
+        }
+        
+        // 进入动画
+        function initEntryAnimation() {
+            const entryAnimation = document.getElementById('entry-animation');
+            const mainBody = document.getElementById('main-body');
+            const navbar = document.getElementById('navbar');
+            const mainContent = document.getElementById('main-content');
+            const footer = document.getElementById('footer');
+            const progressBar = document.getElementById('progress-bar');
+            
+            // 模拟加载进度
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
+                    
+                    // 加载完成后淡出进入动画
+                    setTimeout(() => {
+                        entryAnimation.style.opacity = '0';
+                        entryAnimation.style.transition = 'opacity 0.8s ease-out';
+                        
+                        // 显示页面内容
+                        setTimeout(() => {
+                            mainBody.style.opacity = '1';
+                            navbar.style.opacity = '1';
+                            mainContent.style.opacity = '1';
+                            footer.style.opacity = '1';
+                            entryAnimation.style.display = 'none';
+                        }, 800);
+                    }, 500);
+                }
+                progressBar.style.width = progress + '%';
+            }, 200);
+        }
+        
+        // 移动端播放提示
+        function initMobilePlayTip() {
             const mobilePlayTip = document.getElementById('mobilePlayTip');
+            const biliIframe = document.getElementById('biliIframe');
+            
             mobilePlayTip.addEventListener('click', () => {
                 const src = biliIframe.src;
                 if (!src.includes('autoplay=1')) {
@@ -490,33 +672,17 @@
                 }
                 mobilePlayTip.style.display = 'none';
             });
-            
-            // 模拟进度条更新（实际项目中需要从iframe接收视频进度）
-            const progressSlider = document.getElementById('progressSlider');
-            const timeDisplay = document.getElementById('timeDisplay');
-            let isPlaying = false;
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            
-            playPauseBtn.addEventListener('click', function() {
-                isPlaying = !isPlaying;
-                if (isPlaying) {
-                    playPauseBtn.innerHTML = '<i class="fa fa-pause"></i>';
-                } else {
-                    playPauseBtn.innerHTML = '<i class="fa fa-play"></i>';
-                }
-            });
-            
-            setInterval(function() {
-                if (isPlaying && progressSlider.value < 92) { // 假设视频时长1:32=92秒
-                    progressSlider.value = parseInt(progressSlider.value) + 1;
-                    
-                    // 更新时间显示
-                    const currentTime = parseInt(progressSlider.value);
-                    const minutes = Math.floor(currentTime / 60);
-                    const seconds = currentTime % 60;
-                    timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} / 01:32`;
-                }
-            }, 1000);
+        }
+        
+        // 页面加载完成后初始化所有功能
+        document.addEventListener('DOMContentLoaded', function() {
+            createCherryBlossoms();
+            initEntryAnimation();
+            initTabs();
+            initVideoCards();
+            initMiniPlayer();
+            initVideoErrorHandling();
+            initMobilePlayTip();
         });
     </script>
 </body>
